@@ -1,2 +1,5 @@
 # copes_hub_tsunamis
-Code for CascadiaCopes Hub tsunami modeling work
+
+Code for [Cascadia CoPes Hub](https://cascadiacopeshub.org/)
+tsunami modeling work.
+
