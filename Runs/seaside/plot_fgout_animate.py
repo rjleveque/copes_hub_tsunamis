@@ -15,24 +15,34 @@ from matplotlib import animation, colors
 from clawpack.geoclaw import fgout_tools
 from datetime import timedelta
 
+
+try:
+    COPES = os.environ['COPES']
+except:
+    raise Exception("*** Set COPES enviornment variable to repository top")
+
+
 sys.path.insert(0,'.')
 event = 'CSZ_SM1'
+location = 'Seaside'  # for naming mp4 file
 
+outdir = os.path.abspath('%s/_output_from_tests' % event)
+plotdir = os.path.abspath('%s/_plots' % event)
 
 if 1:
     from clawpack.geoclaw import fgout_tools
-    graphics_dir = os.path.abspath('../graphics')
+    graphics_dir = os.path.abspath(COPES + '/graphics')
 else:
     # local versions for self-contained directory:
     import fgout_tools
     graphics_dir = './'
     
-outdir = os.path.abspath('_output')
+
 fgno = 3
 
 nout = 301
 fgframes = range(1,nout+1)
-fgframes = [1,100,200,nout]  # test
+#fgframes = [1,100,200,nout]  # test on few frames
 
 if 'mmfs1' in outdir:
     # on hyak:
@@ -42,8 +52,7 @@ print('Looking for output in ',outdir)
 
 output_format = 'binary32'
 
-#GE_image = imread(graphics_dir + '/fgout01GE.png')
-#GE_extent = [-123.96,-123.9025,45.975,46.0275]
+
 GE_image = imread(graphics_dir + '/seaside_fgout0003GE.png')
 GE_extent = [-123.96,-123.9025,45.972,46.0275]
 
@@ -399,22 +408,15 @@ def make_anim():
 if __name__ == '__main__':
     
     anim = make_anim()
-    
-    rundir = os.getcwd()
-    if 'mmfs1' in rundir:
-        # on hyak:
-        scrdir = rundir.replace('mmfs1/home','gscratch/tsunami')
-        outdir = os.path.join(scrdir, '_output')
-    plotdir = outdir.replace('_output','_plots')
 
-    if 0:
-        fgout_plotdir = plotdir + '/animations'
+    if 1:
+        fgout_plotdir = plotdir
         os.system('mkdir -p %s' % fgout_plotdir)
     else:
         fgout_plotdir = '.'
 
     # Output files:
-    name = '%s_animation' % event
+    name = '%s_%s_animation' % (location,event)
 
     fname_mp4 = os.path.join(fgout_plotdir, name + '.mp4')
     #fname_html = os.path.join(fgout_plotdir, name + '.html')
