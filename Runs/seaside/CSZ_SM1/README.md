@@ -17,7 +17,11 @@ subtracting 360 from the xlower value in the header.  For this problem the
 topo files are fine but the dtopo file
     $COPES/dtopo/dtopofiles/CSZ_SM1.tt3
 must be modified by changing the fourth line from
-    
+    2.33000000000000e+02   xlower
+to
+    -1.27000000000000e+02   xlower
+Otherwise the seafloor deformation will be outside of the computational
+domain and no tsunami will be generated.
 
 Then
 
@@ -37,4 +41,3 @@ Then to make gauge plots:
 To make an animation using data in the fgout files,
 
     plot_fgout03T_animate.py
-
