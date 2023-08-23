@@ -25,6 +25,7 @@ domain and no tsunami will be generated.
 
 Then
 
+    cd $COPES/Runs/seaside/CSZ_SM1
     make data
 
 will produce .data files and also .kml files to view on Google Earth to see
@@ -36,8 +37,18 @@ To run the code:
 
 Then to make gauge plots:
 
+    cd $COPES/Runs/seaside
     python plot_gauges.py
 
 To make an animation using data in the fgout files,
 
-    plot_fgout03T_animate.py
+    python plot_fgout_animate.py
+    
+To make fgmax plots and kmz file:
+
+    python process_fgmax.py
+    
+These scripts in $COPES/Runs/seaside will create plots and an animation in
+    $COPES/Runs/seaside/CSZ_SM1/_plots.
+The scripts can be modified by changing `event` to
+also be used for additional runs using different dtopo files.

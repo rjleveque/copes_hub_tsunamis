@@ -1,13 +1,10 @@
 
 from pylab import *
 import clawpack.pyclaw.gauges as gauges
+import os
 
-
-outdirs = {}
-outdirs['SM1'] = '/Users/rjl/tests/seaside_copes/CSZ_SM1/_output'
-
-def make_plot(gaugeno, location, event):
-    gauge = gauges.GaugeSolution(gaugeno, outdirs[event])
+def make_plot(gaugeno, location, event, outdir, plotdir):
+    gauge = gauges.GaugeSolution(gaugeno, outdir)
     x,y = gauge.location
     t = gauge.t / 60.   # convert to minutes
     q = gauge.q
@@ -49,13 +46,18 @@ def make_plot(gaugeno, location, event):
     grid(linewidth=0.5)
     title('')
 
-    fname = '%s_%s_Gauge%s.png' % (location,event,str(gaugeno).zfill(5))
+    fname = plotdir + '/%s_%s_Gauge%s.png' \
+            % (location,event,str(gaugeno).zfill(5))
     savefig(fname, bbox_inches='tight')
     print('Created %s' % fname)
 
 if __name__ == '__main__':
     location = 'Seaside'
-    event = 'SM1'
-    gaugenos = range(1001,1042,10)
+    event = 'CSZ_SM1'
+    outdir = '%s/_output' % event
+    plotdir = '%s/_plots/gauges' % event
+    os.system('mkdir -p %s' % plotdir)
+    gaugenos = range(1001,1051,1)
+    
     for gaugeno in gaugenos:
-        make_plot(gaugeno, location, event)
+        make_plot(gaugeno, location, event, outdir, plotdir)

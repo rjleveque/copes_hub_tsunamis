@@ -26,7 +26,7 @@ sys.path.insert(0,'.')
 event = 'CSZ_SM1'
 location = 'Seaside'  # for naming mp4 file
 
-outdir = os.path.abspath('%s/_output_from_tests' % event)
+outdir = os.path.abspath('%s/_output' % event)
 plotdir = os.path.abspath('%s/_plots' % event)
 
 if 1:
