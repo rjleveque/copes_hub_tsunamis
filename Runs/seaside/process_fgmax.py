@@ -32,8 +32,8 @@ import fgmax_tools  # uses local version with transposed arrays
 
 loc   = 'Seaside'
 event = 'CSZ_SM1'
-outdir = event + '/_output_from_tests'
-plotdir = event + '_plots'
+outdir = event + '/_output'
+plotdir = event + '/_plots'
 
 save_figs = True             # make png files for figures?
 close_figs = True            # close big figures after saving?
