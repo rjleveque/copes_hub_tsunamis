@@ -3,7 +3,7 @@
 
 Set environment variable COPES to top level of this repository.
 
-Requires topo and dtopo files that can be obtained via:
+Running the code requires topo and dtopo files that can be obtained via:
 
     cd $COPES/topo
     python fetch_etopo_csz.py
@@ -11,6 +11,13 @@ Requires topo and dtopo files that can be obtained via:
 
     cd $COPES/dtopo
     bash wget_csz.sh
+
+Note that some topo or dtopo files use longitude E and need to be shifted by
+subtracting 360 from the xlower value in the header.  For this problem the
+topo files are fine but the dtopo file
+    $COPES/dtopo/dtopofiles/CSZ_SM1.tt3
+must be modified by changing the fourth line from
+    
 
 Then
 
