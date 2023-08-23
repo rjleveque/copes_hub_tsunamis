@@ -39,7 +39,7 @@ save_figs = True             # make png files for figures?
 close_figs = True            # close big figures after saving?
 
 print('Will read fgmax results from outdir = \n  ', outdir)
-fgmax_plotdir = plotdir + '/_other_figures'
+fgmax_plotdir = plotdir + '/fgmax'
 print('Will send plots to fgmax_plotdir = \n  ', fgmax_plotdir)
 os.system('mkdir -p %s' % fgmax_plotdir);
 
