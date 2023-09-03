@@ -30,7 +30,10 @@ sys.path.insert(0,'.')
 import fgmax_tools  # uses local version with transposed arrays
                     # should appear in v5.10.0
 
+# some things in this script are specialized to:
 loc   = 'Seaside'
+
+# Change these to use data from a different event and/or subdirectory:
 event = 'CSZ_SM1'
 outdir = event + '/_output'
 plotdir = event + '/_plots'
@@ -136,7 +139,7 @@ def plotZ(Z, show_cb=True):
     xticks(rotation=20);
     
     
-figure(figsize=(8,8))
+figure(figsize=(12,8))
 subplot(121)
 plotZ(fg.B0, show_cb=True)
 title('GeoClaw B0 before quake')
@@ -148,15 +151,29 @@ tight_layout()
 savefigp('geoclaw_topo.png')
 
 
-onshore = fg.B0 >  0.
+#othercondition = None    # if onshore determined only by fg.B0 > 0
+
+# For Seaside, consider harbor/rivers to be onshore when plotting zeta:
+othercondition = fg.X > -123.93
+
+onshore = logical_or(fg.B0 >  0., othercondition)
+
 if fg.force_dry_init is not None:
     onshore = logical_or(onshore, fg.force_dry_init)
 offshore = logical_not(onshore)
 
 fg.h_onshore = ma.masked_where(offshore, fg.h)
-fg.eta_offshore = ma.masked_where(onshore, fg.B0 + fg.h)  # use B0 for continuity at shore
 
-# ## Plot maximum flow depth
+# zeta = h where B0>0 or h+B0 where B0<0 shows depth or apparent change in
+# water level in river or harbor when viewed from shore:
+fg.zeta_onshore = where(logical_and(fg.B0 < 0., othercondition),
+                        fg.B0+fg.h, fg.h_onshore)
+fg.zeta_onshore = ma.masked_where(offshore, fg.zeta_onshore)
+
+# use B0 for continuity at shore:                                    
+fg.eta_offshore = ma.masked_where(onshore, fg.B0 + fg.h)
+
+# Plot maximum flow depth
 
 #bounds_depth = array([1e-6,0.5,1.0,1.5,2,4.0,6.0])
 bounds_depth = array([1e-6,1,2,4,6,10,12])
@@ -173,10 +190,10 @@ cmap_depth.set_under(color=[.7,1,.7])
 norm_depth = colors.BoundaryNorm(bounds_depth, cmap_depth.N)
     
 
-maxh_onshore = nanmax(fg.h_onshore)
+maxh_onshore = nanmax(fg.zeta_onshore)
 maxh_onshore_ft = maxh_onshore/0.3048
-figure(figsize=(12,8))
-pc = plottools.pcolorcells(fg.X, fg.Y, fg.h_onshore, cmap=cmap_depth, norm=norm_depth)
+figure(figsize=(8,8))
+pc = plottools.pcolorcells(fg.X, fg.Y, fg.zeta_onshore, cmap=cmap_depth, norm=norm_depth)
 cb = colorbar(pc, extend='max', shrink=0.7)
 cb.set_label('meters')
 contour(fg.X, fg.Y, fg.B0, [0], colors='g')
@@ -184,8 +201,9 @@ contour(fg.X, fg.Y, fg.B0, [0], colors='g')
 gca().set_aspect(1./cos(ylat*pi/180.))
 ticklabel_format(useOffset=False)
 xticks(rotation=20)
-title('Maximum onshore flow depth over %.2f hours was %.2f meters' \
-       % (t_hours,maxh_onshore))
+title('Maximum onshore flow depth h over %.2f hours\n' % t_hours \
+        +'was %.2f meters (h+B0 in harbor/rivers)' % maxh_onshore)
+    
 savefigp('h_onshore.png')
 
 
@@ -203,7 +221,7 @@ cmap_speed.set_under(color=[.7,1,.7])
 
 norm_speed = colors.BoundaryNorm(bounds_speed, cmap_speed.N)
 
-figure(figsize=(12,8))
+figure(figsize=(8,8))
 pc = plottools.pcolorcells(fg.X, fg.Y, fg.s, cmap=cmap_speed, norm=norm_speed)
 cb = colorbar(pc, extend='max', shrink=0.7)
 cb.set_label('m/s')
@@ -215,6 +233,8 @@ title('Maximum speed over %.2f hours' % t_hours)
 savefigp('speed.png')
 
 
+# Plot eta offshore if desired:
+
 #bounds_eta = array([0,0.5,1.0,1.5,2,4.0,6.0])
 bounds_eta = array([0,1,2,4,6,10,12])
 
@@ -225,17 +245,19 @@ cmap_eta = colors.ListedColormap([[.7,.7,1],[.5,.5,1],[0,0,1],
 cmap_eta.set_over(color=[1,0,1])
 
 norm_eta = colors.BoundaryNorm(bounds_eta, cmap_eta.N)
-    
-figure(figsize=(12,8))
-pc = plottools.pcolorcells(fg.X, fg.Y, fg.eta_offshore, cmap=cmap_eta, norm=norm_eta)
-cb = colorbar(pc, extend='max', shrink=0.7)
-cb.set_label('meters')
-contour(fg.X, fg.Y, fg.B0, [0], colors='g')
-gca().set_aspect(1./cos(ylat*pi/180.))
-ticklabel_format(useOffset=False)
-xticks(rotation=20)
-title('Maximum offshore surface eta over %.2f hours' % t_hours)
-savefigp('eta_offshore.png')
+
+if 0:
+
+    figure(figsize=(8,8))
+    pc = plottools.pcolorcells(fg.X, fg.Y, fg.eta_offshore, cmap=cmap_eta, norm=norm_eta)
+    cb = colorbar(pc, extend='max', shrink=0.7)
+    cb.set_label('meters')
+    contour(fg.X, fg.Y, fg.B0, [0], colors='g')
+    gca().set_aspect(1./cos(ylat*pi/180.))
+    ticklabel_format(useOffset=False)
+    xticks(rotation=20)
+    title('Maximum offshore surface eta over %.2f hours' % t_hours)
+    savefigp('eta_offshore.png')
 
 
 
@@ -254,7 +276,7 @@ if 1:
     #fg.x = fg.X[:,0]
     #fg.y = fg.Y[0,:]
 
-    h_wet_onshore = ma.masked_where(fg.h_onshore==0., fg.h_onshore)
+    h_wet_onshore = ma.masked_where(fg.h_onshore==0., fg.zeta_onshore)
     print('fg.x, fg.y shapes: ',fg.x.shape, fg.y.shape)
     print('+++ h_wet_onshore.shape = ',h_wet_onshore.shape)
     png_filename=kml_dir+'/h_onshore_max_for_kml.png'
@@ -309,16 +331,24 @@ if 1:
 
 
 
-    png_files=['h_onshore_max_for_kml.png', 'speed_max_for_kml.png','stays_dry_for_kml.png',
-               'eta_offshore_max_for_kml.png']
-    png_names=['max depth onshore','max speed','stays dry',
-               'eta_offshore']
-    cb_files = ['colorbar_depth.png', 'colorbar_speed.png',
-                'colorbar_eta.png']
-    cb_names = ['colorbar_depth', 'colorbar_speed',
-                'colorbar_eta']
+    if 0:
+        # include eta offshore:
+        png_files=['h_onshore_max_for_kml.png', 'speed_max_for_kml.png','stays_dry_for_kml.png',
+                   'eta_offshore_max_for_kml.png']
+        png_names=['max depth (zeta) onshore','max speed','stays dry',
+                   'eta_offshore']
+        cb_files = ['colorbar_depth.png', 'colorbar_speed.png',
+                    'colorbar_eta.png']
+        cb_names = ['colorbar_depth', 'colorbar_speed',
+                    'colorbar_eta']
 
-
+    else:
+        # without eta offshore:
+        png_files=['h_onshore_max_for_kml.png', 'speed_max_for_kml.png','stays_dry_for_kml.png']
+        png_names=['max depth (zeta) onshore','max speed','stays dry']
+        cb_files = ['colorbar_depth.png', 'colorbar_speed.png']
+        cb_names = ['colorbar_depth', 'colorbar_speed']
+                
     name = 'fgmax_%s_%s' % (loc,event)
     fname = os.path.join(kml_dir, name+'.kml')
     kmltools.png2kml(png_extent, png_files=png_files, png_names=png_names, 
